@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+import { increaseUsage, checkApiLimit } from "@/lib/api-limit";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -11,6 +13,11 @@ export async function POST(req: Request) {
     const { userId } = auth();
     const body = await req.json();
     const { messages } = body;
+
+    const freeTrial = await checkApiLimit();
+
+    if (!freeTrial)
+      return new NextResponse("Free trial has expired!", { status: 403 });
 
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
     if (!openai.apiKey)
@@ -24,10 +31,7 @@ export async function POST(req: Request) {
       messages: [...messages],
     });
 
-    // {
-    //   role: "system",
-    //   content: "You are a traveller the know amazing places",
-    // },
+    await increaseUsage();
 
     return NextResponse.json(response.choices[0].message);
   } catch (error) {
