@@ -2,7 +2,7 @@
 
 import axios from "axios"
 import Heading from "@/components/heading";
-import { MessageSquare } from 'lucide-react'
+import { Code } from 'lucide-react'
 import { useForm } from "react-hook-form";
 import * as z from 'zod';
 
@@ -19,8 +19,10 @@ import { ChatCompletioRequestMessage } from 'openai'
 import Empty from "@/components/empty";
 import Loader from "@/components/loader";
 
+import ReactMarkdown from "react-markdown"
 
-const ConversationPage = () => {
+
+const CodePage = () => {
 
   const router = useRouter();
 
@@ -43,7 +45,7 @@ const ConversationPage = () => {
       }
       const newMessages = [...messages, userMessage];
 
-      const response = await axios.post("/api/conversation", {
+      const response = await axios.post("/api/code", {
         messages: newMessages
       });
 
@@ -60,11 +62,11 @@ const ConversationPage = () => {
   return (
     <div>
       <Heading
-        title={"Chat"}
-        description={"OPEN AI"}
-        icon={MessageSquare}
-        iconColor="text-violet-500"
-        bgColor="bg-violet-500/10"
+        title={"Code Generation"}
+        description={"Generate code"}
+        icon={Code}
+        iconColor="text-green-500"
+        bgColor="bg-green-500/10"
       />
       <div className="px-4 lg:px-8">
         <Form {...form}>
@@ -86,7 +88,7 @@ const ConversationPage = () => {
                         focus-visible:ring-0 
                         focus-visible:ring-transparent"
                       disabled={isLoading}
-                      placeholder="Qual è la tabellina del 9?"
+                      placeholder="Toogle button in React Js"
                       {...field}
                     />
                   </FormControl>
@@ -118,11 +120,23 @@ const ConversationPage = () => {
           )}
           {messages.map((message, index) => {
             return (
-              <div
-                key={index}
-                className="whitespace-pre-wrap">
-                {message.content}
-              </div>
+              <ReactMarkdown
+                components={{
+                  pre: ({ node, ...props }) => {
+                    return <div className=" overflow-auto w-full my-2 bg-black/10 p-2 rounded-lg">
+                      <pre {...props} />
+                    </div>;
+                  },
+                  code: ({ node, ...props }) => {
+                    return (
+                      <code className="bg-black/10 rounded-lg p-1" {...props} />
+                    )
+                  }
+                }}
+                className="text-sm overflow-hidden leading-7"
+                key={index}>
+                {message.content || ""}
+              </ReactMarkdown>
             )
           })}
         </div>
@@ -131,4 +145,4 @@ const ConversationPage = () => {
   );
 }
 
-export default ConversationPage;
+export default CodePage;
